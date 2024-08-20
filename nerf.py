@@ -130,7 +130,6 @@ if __name__ == '__main__':
     model_optimizer = torch.optim.Adam(model.parameters(), lr=5e-4)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(model_optimizer, milestones=[2, 4, 8], gamma=0.5)
 
-
     data_loader = DataLoader(training_dataset, batch_size=1024, shuffle=True)
     train(model, model_optimizer, scheduler, data_loader, nb_epochs=16, device=device, hn=2, hf=6, nb_bins=192, H=400,
           W=400)

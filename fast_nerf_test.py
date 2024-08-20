@@ -151,7 +151,7 @@ def train(nerf_model, optimizer, scheduler, data_loader, device='cpu', hn=0, hf=
             optimizer.step()
             training_loss.append(loss.item())
         scheduler.step()
-        torch.save(nerf_model.cpu(), 'nerf_model')
+        torch.save(nerf_model.cpu(), 'nerf_model.pth')
         nerf_model.to(device)
     return training_loss
 
