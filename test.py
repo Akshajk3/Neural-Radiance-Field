@@ -4,7 +4,15 @@ import matplotlib.pyplot as plt
 from fast_nerf_test import render_rays, FastNerf
 
 # Load the model
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+if torch.cuda.is_available():
+    device = 'cuda'
+elif torch.backends.mps.is_available():
+    device = 'mps'
+else:
+    device = 'cpu'
+
+print(device)
+
 model = torch.load('nerf_model.pth', map_location=device)
 model.to(device)
 model.eval()
@@ -40,5 +48,5 @@ regenerated_px_values = torch.cat(regenerated_px_values, dim=0)
 plt.figure()
 plt.imshow(regenerated_px_values.numpy().reshape(H, W, 3).clip(0, 1))
 plt.axis('off')
-plt.savefig('generated_image.png', bbox_inches='tight')
+plt.savefig('generated_images/generated_image.png', bbox_inches='tight')
 plt.show()
