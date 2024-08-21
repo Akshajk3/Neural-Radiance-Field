@@ -3,9 +3,6 @@ import numpy as np
 from fast_nerf_test import render_rays, FastNerf
 import open3d as o3d
 
-import os
-os.environ["OMP_NUM_THREADS"] = "1"
-
 # Load the model
 if torch.cuda.is_available():
     device = 'cuda'
@@ -26,6 +23,9 @@ xx, yy, zz = np.meshgrid(x, y, z)
 grid_points = np.vstack((xx.flatten(), yy.flatten(), zz.flatten())).T
 grid_points = torch.tensor(grid_points, dtype=torch.float32).to(device)
 
+# Generate or load direction vectors
+d = torch.randn_like(grid_points).to(device)  # Replace with actual direction vectors if needed
+
 # Query the NeRF model for densities and colors
 densities = []
 colors = []
@@ -33,7 +33,8 @@ batch_size = 2048
 with torch.no_grad():
     for i in range(0, grid_points.shape[0], batch_size):
         batch_points = grid_points[i:i + batch_size]
-        batch_densities, batch_colors = model(batch_points)
+        batch_directions = d[i:i + batch_size]
+        batch_densities, batch_colors = model(batch_points, batch_directions)
         densities.append(batch_densities.cpu())
         colors.append(batch_colors.cpu())
 
@@ -43,8 +44,9 @@ colors = torch.cat(colors, dim=0).numpy()
 
 # Filter points based on density
 density_threshold = 0.1  # Adjust this threshold
-valid_points = grid_points.cpu().numpy()[densities > density_threshold]
-valid_colors = colors[densities > density_threshold]
+valid_mask = densities.squeeze() > density_threshold  # Ensure the mask is 1D
+valid_points = grid_points.cpu().numpy()[valid_mask]
+valid_colors = colors[valid_mask]
 
 # Create a point cloud
 point_cloud = o3d.geometry.PointCloud()
